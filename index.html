@@ -544,12 +544,14 @@
     let selectedEdge = 'none';
     let isAdminUnlocked = false;
     
+    // ID скрытых ингредиентов
     const DOUGH_ID = 'ing1';
+    const CHEESE_ID = 'ing2';
     
     // ============================================================
-    // 3. ДАННЫЕ ПО ТЕСТУ, СОУСАМ И БОРТАМ
+    // 3. ДАННЫЕ ПО СКРЫТЫМ ИНГРЕДИЕНТАМ, СОУСАМ И БОРТАМ
     // ============================================================
-    // Тесто хранится отдельно, чтобы не показывать его в списке
+    // Тесто — всегда в пицце, не отображается в списке
     const DOUGH_DATA = {
         id: DOUGH_ID,
         name: 'Тесто',
@@ -557,6 +559,16 @@
         protein100: 6.2,
         fat100: 4,
         carbs100: 45.8
+    };
+    
+    // Моцарелла — всегда в пицце, не отображается в списке
+    const CHEESE_DATA = {
+        id: CHEESE_ID,
+        name: 'Моцарелла',
+        weight30: 45,
+        protein100: 22,
+        fat100: 22,
+        carbs100: 2.2
     };
     
     const SAUCE_DATA = {
@@ -570,6 +582,9 @@
         potato: { name: 'Картофельный борт', weight30: 70, protein100: 4.5, fat100: 8.6, carbs100: 26.6 }
     };
     
+    // Все скрытые ингредиенты (для админки и сохранения)
+    const HIDDEN_INGREDIENTS = [DOUGH_DATA, CHEESE_DATA];
+    
     // ============================================================
     // 4. РАБОТА С GOOGLE SHEETS
     // ============================================================
@@ -579,8 +594,9 @@
             const resp = await fetch(SCRIPT_URL);
             const data = await resp.json();
             if (Array.isArray(data) && data.length > 0) {
-                // Фильтруем тесто из списка ингредиентов, чтобы не показывать его
-                ingredients = data.filter(item => item.id !== DOUGH_ID);
+                // Фильтруем скрытые ингредиенты из списка
+                const hiddenIds = HIDDEN_INGREDIENTS.map(i => i.id);
+                ingredients = data.filter(item => !hiddenIds.includes(item.id));
                 setStatus('✅ загружено');
             } else {
                 throw new Error('Нет данных');
@@ -589,7 +605,6 @@
             console.error(e);
             setStatus('⚠️ демо');
             ingredients = [
-                { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
                 { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
                 { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
                 { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
@@ -602,8 +617,8 @@
     async function saveToSheet(data) {
         setStatus('💾 сохранение...');
         try {
-            // Добавляем тесто в данные перед сохранением
-            const fullData = [...data, DOUGH_DATA];
+            // Добавляем скрытые ингредиенты перед сохранением
+            const fullData = [...HIDDEN_INGREDIENTS, ...data];
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -658,13 +673,20 @@
     // 6. РАСЧЁТЫ
     // ============================================================
     function getSizeMultiplier(ing) {
+        // Для 25 см — 75%
         if (currentSize === '25') return 0.75;
+        
+        // Для закрытой:
+        // - тесто: 150% (2× теста для 25 см)
+        // - моцарелла и остальные ингредиенты: 100%
         if (currentSize === 'closed') {
             if (ing && ing.id === DOUGH_ID) {
                 return 1.5;
             }
             return 1.0;
         }
+        
+        // 30 см — 100%
         return 1.0;
     }
     
@@ -685,15 +707,15 @@
         };
     }
     
-    function calcDoughPortion() {
-        const weight = getActualWeight(DOUGH_DATA.weight30, DOUGH_DATA);
+    function calcHiddenIngredient(ingData) {
+        const weight = getActualWeight(ingData.weight30, ingData);
         const factor = weight / 100;
         return {
             weight: weight,
-            protein: DOUGH_DATA.protein100 * factor,
-            fat: DOUGH_DATA.fat100 * factor,
-            carbs: DOUGH_DATA.carbs100 * factor,
-            calories: Math.round((DOUGH_DATA.protein100 * factor * 4) + (DOUGH_DATA.fat100 * factor * 9) + (DOUGH_DATA.carbs100 * factor * 4))
+            protein: ingData.protein100 * factor,
+            fat: ingData.fat100 * factor,
+            carbs: ingData.carbs100 * factor,
+            calories: Math.round((ingData.protein100 * factor * 4) + (ingData.fat100 * factor * 9) + (ingData.carbs100 * factor * 4))
         };
     }
     
@@ -729,13 +751,15 @@
     function calcTotals() {
         let totalWeight = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalCal = 0;
         
-        // Тесто всегда добавляется автоматически
-        const dough = calcDoughPortion();
-        totalWeight += dough.weight;
-        totalProtein += dough.protein;
-        totalFat += dough.fat;
-        totalCarbs += dough.carbs;
-        totalCal += dough.calories;
+        // Все скрытые ингредиенты (тесто, моцарелла) добавляются автоматически
+        HIDDEN_INGREDIENTS.forEach(hidden => {
+            const p = calcHiddenIngredient(hidden);
+            totalWeight += p.weight;
+            totalProtein += p.protein;
+            totalFat += p.fat;
+            totalCarbs += p.carbs;
+            totalCal += p.calories;
+        });
         
         // Выбранные ингредиенты
         selectedIds.forEach(id => {
@@ -861,19 +885,19 @@
         
         if (!isAdminUnlocked) return;
         
-        // Показываем в админке все ингредиенты + тесто
-        const allIngredients = [DOUGH_DATA, ...ingredients];
+        // Показываем все скрытые ингредиенты + остальные
+        const allIngredients = [...HIDDEN_INGREDIENTS, ...ingredients];
         
         allIngredients.forEach(ing => {
             const tr = document.createElement('tr');
-            const isDough = ing.id === DOUGH_ID;
+            const isHidden = HIDDEN_INGREDIENTS.some(h => h.id === ing.id);
             tr.innerHTML = `
-                <td>${ing.name} ${isDough ? '⭐' : ''}</td>
-                <td><input type="number" class="admin-weight" data-id="${ing.id}" value="${ing.weight30}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
-                <td><input type="number" step="0.1" class="admin-protein" data-id="${ing.id}" value="${ing.protein100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
-                <td><input type="number" step="0.1" class="admin-fat" data-id="${ing.id}" value="${ing.fat100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
-                <td><input type="number" step="0.1" class="admin-carbs" data-id="${ing.id}" value="${ing.carbs100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
-                <td>${isDough ? '⭐' : '<button class="del-btn" data-id="'+ing.id+'">✕</button>'}</td>
+                <td>${ing.name} ${isHidden ? '⭐' : ''}</td>
+                <td><input type="number" class="admin-weight" data-id="${ing.id}" value="${ing.weight30}" ${isHidden ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-protein" data-id="${ing.id}" value="${ing.protein100}" ${isHidden ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-fat" data-id="${ing.id}" value="${ing.fat100}" ${isHidden ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-carbs" data-id="${ing.id}" value="${ing.carbs100}" ${isHidden ? 'style="background:#fef5e7;"' : ''}></td>
+                <td>${isHidden ? '⭐' : '<button class="del-btn" data-id="'+ing.id+'">✕</button>'}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -881,8 +905,8 @@
         tbody.querySelectorAll('.del-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                if (id === DOUGH_ID) {
-                    alert('❌ Нельзя удалить тесто!');
+                if (HIDDEN_INGREDIENTS.some(h => h.id === id)) {
+                    alert('❌ Нельзя удалить базовый ингредиент!');
                     return;
                 }
                 if (confirm('Удалить ингредиент?')) {
@@ -907,8 +931,8 @@
             if (!id) return;
             
             let ing;
-            if (id === DOUGH_ID) {
-                ing = DOUGH_DATA;
+            if (HIDDEN_INGREDIENTS.some(h => h.id === id)) {
+                ing = HIDDEN_INGREDIENTS.find(h => h.id === id);
             } else {
                 ing = ingredients.find(i => i.id === id);
             }
@@ -1017,17 +1041,22 @@
     
     document.getElementById('reset-ing-btn').addEventListener('click', () => {
         if (confirm('Сбросить все ингредиенты к демо-набору?')) {
-            ingredients = [
-                { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
-                { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
-                { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
-                { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
-            ];
-            // Обновляем тесто
+            // Обновляем скрытые ингредиенты
             DOUGH_DATA.weight30 = 350;
             DOUGH_DATA.protein100 = 6.2;
             DOUGH_DATA.fat100 = 4;
             DOUGH_DATA.carbs100 = 45.8;
+            
+            CHEESE_DATA.weight30 = 45;
+            CHEESE_DATA.protein100 = 22;
+            CHEESE_DATA.fat100 = 22;
+            CHEESE_DATA.carbs100 = 2.2;
+            
+            ingredients = [
+                { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
+                { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
+                { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
+            ];
             
             selectedIds = [];
             selectedSauce = 'tomato';
