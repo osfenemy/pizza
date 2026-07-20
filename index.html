@@ -23,7 +23,6 @@
             margin: 0 auto;
         }
         
-        /* ===== ШАПКА ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -42,7 +41,6 @@
             color: #2c3e50;
         }
         
-        /* ===== ТАБЛО ИТОГОВ ===== */
         .total-panel {
             background: #2e3b2c;
             color: white;
@@ -72,7 +70,6 @@
             margin-top: 1px;
         }
         
-        /* ===== РАЗМЕР ===== */
         .size-selector {
             display: flex;
             gap: 8px;
@@ -101,7 +98,6 @@
             color: #c45c1a;
         }
         
-        /* ===== СОУС ===== */
         .sauce-selector {
             display: flex;
             gap: 8px;
@@ -139,7 +135,6 @@
             color: #c45c1a;
         }
         
-        /* ===== БОРТ ===== */
         .edge-selector {
             display: flex;
             flex-wrap: wrap;
@@ -185,7 +180,6 @@
             color: #555;
         }
         
-        /* ===== ИНГРЕДИЕНТЫ ===== */
         .ingredients-section {
             background: white;
             border-radius: 16px;
@@ -261,7 +255,6 @@
             background: #c0392b;
         }
         
-        /* ===== АДМИНКА ===== */
         .admin-section {
             background: white;
             border-radius: 16px;
@@ -442,13 +435,11 @@
 <body>
 <div class="container">
     
-    <!-- ===== ШАПКА ===== -->
     <div class="header">
         <h1>🍕 Пицца-калькулятор</h1>
         <span class="status" id="status">🔄 загрузка...</span>
     </div>
     
-    <!-- ===== ТАБЛО ===== -->
     <div class="total-panel">
         <div class="total-grid">
             <div class="total-item"><div class="label">🥩 Белки</div><div class="value" id="total-protein">0 г</div></div>
@@ -459,21 +450,18 @@
         </div>
     </div>
     
-    <!-- ===== ВЫБОР РАЗМЕРА ===== -->
     <div class="size-selector">
         <button class="size-btn" data-size="25">25 см</button>
         <button class="size-btn active" data-size="30">30 см</button>
         <button class="size-btn" data-size="closed">Закрытая</button>
     </div>
     
-    <!-- ===== ВЫБОР СОУСА ===== -->
     <div class="sauce-selector" id="sauce-selector">
         <span class="label">🥫 Соус:</span>
         <button class="sauce-btn active" data-sauce="tomato">Томатный</button>
         <button class="sauce-btn" data-sauce="cream">Сливочный</button>
     </div>
     
-    <!-- ===== ВЫБОР БОРТА ===== -->
     <div class="edge-selector" id="edge-selector">
         <span class="label">🧀 Борт:</span>
         <button class="edge-btn active none" data-edge="none">Без борта</button>
@@ -482,7 +470,6 @@
         <button class="edge-btn" data-edge="potato">Картофельный</button>
     </div>
     
-    <!-- ===== ИНГРЕДИЕНТЫ ===== -->
     <div class="ingredients-section">
         <div class="section-title">
             <span>📋 Ингредиенты</span>
@@ -493,7 +480,6 @@
         </div>
     </div>
     
-    <!-- ===== АДМИНКА ===== -->
     <div class="admin-section collapsed" id="admin-section">
         <div class="admin-header" id="admin-header">
             <div class="icon">
@@ -553,16 +539,26 @@
     // ============================================================
     let ingredients = [];
     let selectedIds = [];
-    let currentSize = '30'; // '25', '30', 'closed'
-    let selectedSauce = 'tomato'; // 'tomato', 'cream'
-    let selectedEdge = 'none';     // 'none', 'cheese', 'cottage', 'potato'
+    let currentSize = '30';
+    let selectedSauce = 'tomato';
+    let selectedEdge = 'none';
     let isAdminUnlocked = false;
     
     const DOUGH_ID = 'ing1';
     
     // ============================================================
-    // 3. ДАННЫЕ ПО СОУСАМ И БОРТАМ (ОБНОВЛЕНЫ)
+    // 3. ДАННЫЕ ПО ТЕСТУ, СОУСАМ И БОРТАМ
     // ============================================================
+    // Тесто хранится отдельно, чтобы не показывать его в списке
+    const DOUGH_DATA = {
+        id: DOUGH_ID,
+        name: 'Тесто',
+        weight30: 350,
+        protein100: 6.2,
+        fat100: 4,
+        carbs100: 45.8
+    };
+    
     const SAUCE_DATA = {
         tomato: { name: 'Томатный соус', weight30: 100, protein100: 0.2, fat100: 2.2, carbs100: 17.1 },
         cream: { name: 'Сливочный соус', weight30: 90, protein100: 0.4, fat100: 42, carbs100: 3.9 }
@@ -583,7 +579,8 @@
             const resp = await fetch(SCRIPT_URL);
             const data = await resp.json();
             if (Array.isArray(data) && data.length > 0) {
-                ingredients = data;
+                // Фильтруем тесто из списка ингредиентов, чтобы не показывать его
+                ingredients = data.filter(item => item.id !== DOUGH_ID);
                 setStatus('✅ загружено');
             } else {
                 throw new Error('Нет данных');
@@ -592,7 +589,6 @@
             console.error(e);
             setStatus('⚠️ демо');
             ingredients = [
-                { id: "ing1", name: "Тесто", weight30: 350, protein100: 6.2, fat100: 4, carbs100: 45.8 },
                 { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
                 { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
                 { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
@@ -606,11 +602,13 @@
     async function saveToSheet(data) {
         setStatus('💾 сохранение...');
         try {
+            // Добавляем тесто в данные перед сохранением
+            const fullData = [...data, DOUGH_DATA];
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(fullData)
             });
             setStatus('✅ сохранено');
         } catch(e) {
@@ -657,33 +655,26 @@
     }
     
     // ============================================================
-    // 6. РАСЧЁТЫ — ГЛАВНАЯ ЛОГИКА
+    // 6. РАСЧЁТЫ
     // ============================================================
     function getSizeMultiplier(ing) {
-        // 25 см → 75% от 30 см
         if (currentSize === '25') return 0.75;
-        
-        // Закрытая пицца:
-        // - тесто: 150% (2× теста для 25 см, так как 0.75 × 2 = 1.5)
-        // - все остальные ингредиенты: 100% (как для 30 см)
         if (currentSize === 'closed') {
             if (ing && ing.id === DOUGH_ID) {
                 return 1.5;
             }
             return 1.0;
         }
-        
-        // 30 см → 100%
         return 1.0;
     }
     
-    function getActualWeight(ing) {
+    function getActualWeight(weight30, ing) {
         const multiplier = getSizeMultiplier(ing);
-        return Math.round(ing.weight30 * multiplier);
+        return Math.round(weight30 * multiplier);
     }
     
     function calcPortion(ing) {
-        const weight = getActualWeight(ing);
+        const weight = getActualWeight(ing.weight30, ing);
         const factor = weight / 100;
         return {
             weight: weight,
@@ -694,11 +685,22 @@
         };
     }
     
+    function calcDoughPortion() {
+        const weight = getActualWeight(DOUGH_DATA.weight30, DOUGH_DATA);
+        const factor = weight / 100;
+        return {
+            weight: weight,
+            protein: DOUGH_DATA.protein100 * factor,
+            fat: DOUGH_DATA.fat100 * factor,
+            carbs: DOUGH_DATA.carbs100 * factor,
+            calories: Math.round((DOUGH_DATA.protein100 * factor * 4) + (DOUGH_DATA.fat100 * factor * 9) + (DOUGH_DATA.carbs100 * factor * 4))
+        };
+    }
+    
     function calcSaucePortion() {
         const sauce = SAUCE_DATA[selectedSauce];
         if (!sauce) return null;
-        const multiplier = getSizeMultiplier({ id: 'sauce' });
-        const weight = Math.round(sauce.weight30 * multiplier);
+        const weight = getActualWeight(sauce.weight30, { id: 'sauce' });
         const factor = weight / 100;
         return {
             weight: weight,
@@ -713,8 +715,7 @@
         if (selectedEdge === 'none') return null;
         const edge = EDGE_DATA[selectedEdge];
         if (!edge) return null;
-        const multiplier = getSizeMultiplier({ id: 'edge' });
-        const weight = Math.round(edge.weight30 * multiplier);
+        const weight = getActualWeight(edge.weight30, { id: 'edge' });
         const factor = weight / 100;
         return {
             weight: weight,
@@ -728,6 +729,15 @@
     function calcTotals() {
         let totalWeight = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalCal = 0;
         
+        // Тесто всегда добавляется автоматически
+        const dough = calcDoughPortion();
+        totalWeight += dough.weight;
+        totalProtein += dough.protein;
+        totalFat += dough.fat;
+        totalCarbs += dough.carbs;
+        totalCal += dough.calories;
+        
+        // Выбранные ингредиенты
         selectedIds.forEach(id => {
             const ing = ingredients.find(i => i.id === id);
             if (ing) {
@@ -740,7 +750,7 @@
             }
         });
         
-        // Соус (всегда есть)
+        // Соус
         const sauce = calcSaucePortion();
         if (sauce) {
             totalWeight += sauce.weight;
@@ -750,7 +760,7 @@
             totalCal += sauce.calories;
         }
         
-        // Борт (если выбран)
+        // Борт
         const edge = calcEdgePortion();
         if (edge) {
             totalWeight += edge.weight;
@@ -795,16 +805,11 @@
             const div = document.createElement('div');
             div.className = `ing-card ${isSelected ? 'selected' : ''}`;
             
-            let weightDisplay = p.weight + 'г';
-            if (currentSize === 'closed' && ing.id === DOUGH_ID) {
-                weightDisplay = p.weight + 'г (2× теста)';
-            }
-            
             div.innerHTML = `
                 <div class="info">
                     <div class="name">${ing.name}</div>
                     <div class="detail">
-                        <span>⚖️ ${weightDisplay}</span>
+                        <span>⚖️ ${p.weight}г</span>
                         <span>🥩${p.protein.toFixed(1)}</span>
                         <span>🧈${p.fat.toFixed(1)}</span>
                         <span>🍚${p.carbs.toFixed(1)}</span>
@@ -836,17 +841,14 @@
     }
     
     function renderSelectors() {
-        // Размер
         document.querySelectorAll('.size-btn').forEach(btn => {
             const size = btn.dataset.size;
             btn.classList.toggle('active', size === currentSize);
         });
-        // Соус
         document.querySelectorAll('.sauce-btn').forEach(btn => {
             const sauce = btn.dataset.sauce;
             btn.classList.toggle('active', sauce === selectedSauce);
         });
-        // Борт
         document.querySelectorAll('.edge-btn').forEach(btn => {
             const edge = btn.dataset.edge;
             btn.classList.toggle('active', edge === selectedEdge);
@@ -859,15 +861,19 @@
         
         if (!isAdminUnlocked) return;
         
-        ingredients.forEach(ing => {
+        // Показываем в админке все ингредиенты + тесто
+        const allIngredients = [DOUGH_DATA, ...ingredients];
+        
+        allIngredients.forEach(ing => {
             const tr = document.createElement('tr');
+            const isDough = ing.id === DOUGH_ID;
             tr.innerHTML = `
-                <td>${ing.name}</td>
-                <td><input type="number" class="admin-weight" data-id="${ing.id}" value="${ing.weight30}"></td>
-                <td><input type="number" step="0.1" class="admin-protein" data-id="${ing.id}" value="${ing.protein100}"></td>
-                <td><input type="number" step="0.1" class="admin-fat" data-id="${ing.id}" value="${ing.fat100}"></td>
-                <td><input type="number" step="0.1" class="admin-carbs" data-id="${ing.id}" value="${ing.carbs100}"></td>
-                <td><button class="del-btn" data-id="${ing.id}">✕</button></td>
+                <td>${ing.name} ${isDough ? '⭐' : ''}</td>
+                <td><input type="number" class="admin-weight" data-id="${ing.id}" value="${ing.weight30}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-protein" data-id="${ing.id}" value="${ing.protein100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-fat" data-id="${ing.id}" value="${ing.fat100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
+                <td><input type="number" step="0.1" class="admin-carbs" data-id="${ing.id}" value="${ing.carbs100}" ${isDough ? 'style="background:#fef5e7;"' : ''}></td>
+                <td>${isDough ? '⭐' : '<button class="del-btn" data-id="'+ing.id+'">✕</button>'}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -899,8 +905,15 @@
         rows.forEach(row => {
             const id = row.querySelector('.admin-weight')?.dataset.id;
             if (!id) return;
-            const ing = ingredients.find(i => i.id === id);
+            
+            let ing;
+            if (id === DOUGH_ID) {
+                ing = DOUGH_DATA;
+            } else {
+                ing = ingredients.find(i => i.id === id);
+            }
             if (!ing) return;
+            
             const weight = parseFloat(row.querySelector('.admin-weight')?.value);
             const protein = parseFloat(row.querySelector('.admin-protein')?.value);
             const fat = parseFloat(row.querySelector('.admin-fat')?.value);
@@ -1005,12 +1018,17 @@
     document.getElementById('reset-ing-btn').addEventListener('click', () => {
         if (confirm('Сбросить все ингредиенты к демо-набору?')) {
             ingredients = [
-                { id: "ing1", name: "Тесто", weight30: 350, protein100: 6.2, fat100: 4, carbs100: 45.8 },
                 { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
                 { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
                 { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
                 { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
             ];
+            // Обновляем тесто
+            DOUGH_DATA.weight30 = 350;
+            DOUGH_DATA.protein100 = 6.2;
+            DOUGH_DATA.fat100 = 4;
+            DOUGH_DATA.carbs100 = 45.8;
+            
             selectedIds = [];
             selectedSauce = 'tomato';
             selectedEdge = 'none';
