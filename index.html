@@ -41,12 +41,13 @@
             color: #2c3e50;
         }
         
+        /* ===== ОСНОВНОЕ ТАБЛО (ВСЯ ПИЦЦА) ===== */
         .total-panel {
             background: #2e3b2c;
             color: white;
             border-radius: 16px;
             padding: 12px 14px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .total-grid {
             display: grid;
@@ -68,6 +69,45 @@
             font-size: 1rem;
             font-weight: bold;
             margin-top: 1px;
+        }
+        
+        /* ===== ТАБЛО НА 100 Г ===== */
+        .total-panel-100 {
+            background: #1e2b1c;
+            color: white;
+            border-radius: 16px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 1px solid #3a4a38;
+        }
+        .total-panel-100 .label-100 {
+            font-size: 0.6rem;
+            opacity: 0.6;
+            text-align: center;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .total-grid-100 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+        .total-item-100 {
+            background: #0000002e;
+            border-radius: 10px;
+            padding: 5px 2px;
+            text-align: center;
+        }
+        .total-item-100 .label {
+            font-size: 0.45rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+        .total-item-100 .value {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-top: 1px;
+            color: #aaddaa;
         }
         
         .size-selector {
@@ -423,6 +463,8 @@
             body { padding: 8px; }
             .total-grid { gap: 3px; }
             .total-item .value { font-size: 0.8rem; }
+            .total-grid-100 { gap: 3px; }
+            .total-item-100 .value { font-size: 0.8rem; }
             .ing-card { padding: 6px 10px; }
             .ing-card .name { font-size: 0.75rem; }
             .admin-table input { min-width: 28px; font-size: 0.65rem; }
@@ -440,6 +482,7 @@
         <span class="status" id="status">🔄 загрузка...</span>
     </div>
     
+    <!-- ===== ОСНОВНОЕ ТАБЛО (ВСЯ ПИЦЦА) ===== -->
     <div class="total-panel">
         <div class="total-grid">
             <div class="total-item"><div class="label">🥩 Белки</div><div class="value" id="total-protein">0 г</div></div>
@@ -447,6 +490,18 @@
             <div class="total-item"><div class="label">🍚 Углеводы</div><div class="value" id="total-carbs">0 г</div></div>
             <div class="total-item"><div class="label">🔥 Ккал</div><div class="value" id="total-calories">0</div></div>
             <div class="total-item"><div class="label">⚖️ Вес</div><div class="value" id="total-weight">0 г</div></div>
+        </div>
+    </div>
+    
+    <!-- ===== ТАБЛО НА 100 Г ===== -->
+    <div class="total-panel-100">
+        <div class="label-100">📊 НА 100 Г ПРОДУКТА</div>
+        <div class="total-grid-100">
+            <div class="total-item-100"><div class="label">🥩 Белки</div><div class="value" id="total-protein-100">0 г</div></div>
+            <div class="total-item-100"><div class="label">🧈 Жиры</div><div class="value" id="total-fat-100">0 г</div></div>
+            <div class="total-item-100"><div class="label">🍚 Углеводы</div><div class="value" id="total-carbs-100">0 г</div></div>
+            <div class="total-item-100"><div class="label">🔥 Ккал</div><div class="value" id="total-calories-100">0</div></div>
+            <div class="total-item-100"><div class="label">⚖️ Вес</div><div class="value" id="total-weight-100">100 г</div></div>
         </div>
     </div>
     
@@ -544,14 +599,12 @@
     let selectedEdge = 'none';
     let isAdminUnlocked = false;
     
-    // ID скрытых ингредиентов
     const DOUGH_ID = 'ing1';
     const CHEESE_ID = 'ing2';
     
     // ============================================================
     // 3. ДАННЫЕ ПО СКРЫТЫМ ИНГРЕДИЕНТАМ, СОУСАМ И БОРТАМ
     // ============================================================
-    // Тесто — всегда в пицце, не отображается в списке
     const DOUGH_DATA = {
         id: DOUGH_ID,
         name: 'Тесто',
@@ -561,11 +614,10 @@
         carbs100: 45.8
     };
     
-    // Моцарелла — всегда в пицце, не отображается в списке
     const CHEESE_DATA = {
         id: CHEESE_ID,
         name: 'Моцарелла',
-        weight30: 120,        // ← исправлено
+        weight30: 120,
         protein100: 18,
         fat100: 21,
         carbs100: 0
@@ -582,7 +634,6 @@
         potato: { name: 'Картофельный борт', weight30: 70, protein100: 4.5, fat100: 8.6, carbs100: 26.6 }
     };
     
-    // Все скрытые ингредиенты (для админки и сохранения)
     const HIDDEN_INGREDIENTS = [DOUGH_DATA, CHEESE_DATA];
     
     // ============================================================
@@ -594,7 +645,6 @@
             const resp = await fetch(SCRIPT_URL);
             const data = await resp.json();
             if (Array.isArray(data) && data.length > 0) {
-                // Фильтруем скрытые ингредиенты из списка
                 const hiddenIds = HIDDEN_INGREDIENTS.map(i => i.id);
                 ingredients = data.filter(item => !hiddenIds.includes(item.id));
                 setStatus('✅ загружено');
@@ -617,7 +667,6 @@
     async function saveToSheet(data) {
         setStatus('💾 сохранение...');
         try {
-            // Добавляем скрытые ингредиенты перед сохранением
             const fullData = [...HIDDEN_INGREDIENTS, ...data];
             await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -673,20 +722,13 @@
     // 6. РАСЧЁТЫ
     // ============================================================
     function getSizeMultiplier(ing) {
-        // Для 25 см — 75%
         if (currentSize === '25') return 0.75;
-        
-        // Для закрытой:
-        // - тесто: 150% (2× теста для 25 см)
-        // - моцарелла и остальные ингредиенты: 100%
         if (currentSize === 'closed') {
             if (ing && ing.id === DOUGH_ID) {
                 return 1.5;
             }
             return 1.0;
         }
-        
-        // 30 см — 100%
         return 1.0;
     }
     
@@ -751,7 +793,6 @@
     function calcTotals() {
         let totalWeight = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalCal = 0;
         
-        // Все скрытые ингредиенты (тесто, моцарелла) добавляются автоматически
         HIDDEN_INGREDIENTS.forEach(hidden => {
             const p = calcHiddenIngredient(hidden);
             totalWeight += p.weight;
@@ -761,7 +802,6 @@
             totalCal += p.calories;
         });
         
-        // Выбранные ингредиенты
         selectedIds.forEach(id => {
             const ing = ingredients.find(i => i.id === id);
             if (ing) {
@@ -774,7 +814,6 @@
             }
         });
         
-        // Соус
         const sauce = calcSaucePortion();
         if (sauce) {
             totalWeight += sauce.weight;
@@ -784,7 +823,6 @@
             totalCal += sauce.calories;
         }
         
-        // Борт
         const edge = calcEdgePortion();
         if (edge) {
             totalWeight += edge.weight;
@@ -812,6 +850,22 @@
         document.getElementById('total-calories').textContent = Math.round(t.totalCal);
         document.getElementById('total-weight').textContent = t.totalWeight + ' г';
         document.getElementById('selected-count').textContent = 'выбрано: ' + selectedIds.length;
+        
+        // ===== РАСЧЁТ НА 100 Г =====
+        if (t.totalWeight > 0) {
+            const factor = 100 / t.totalWeight;
+            document.getElementById('total-protein-100').textContent = (t.totalProtein * factor).toFixed(1) + ' г';
+            document.getElementById('total-fat-100').textContent = (t.totalFat * factor).toFixed(1) + ' г';
+            document.getElementById('total-carbs-100').textContent = (t.totalCarbs * factor).toFixed(1) + ' г';
+            document.getElementById('total-calories-100').textContent = Math.round(t.totalCal * factor);
+            document.getElementById('total-weight-100').textContent = '100 г';
+        } else {
+            document.getElementById('total-protein-100').textContent = '0 г';
+            document.getElementById('total-fat-100').textContent = '0 г';
+            document.getElementById('total-carbs-100').textContent = '0 г';
+            document.getElementById('total-calories-100').textContent = '0';
+            document.getElementById('total-weight-100').textContent = '100 г';
+        }
     }
     
     function renderIngredients() {
@@ -885,7 +939,6 @@
         
         if (!isAdminUnlocked) return;
         
-        // Показываем все скрытые ингредиенты + остальные
         const allIngredients = [...HIDDEN_INGREDIENTS, ...ingredients];
         
         allIngredients.forEach(ing => {
@@ -1041,7 +1094,6 @@
     
     document.getElementById('reset-ing-btn').addEventListener('click', () => {
         if (confirm('Сбросить все ингредиенты к демо-набору?')) {
-            // Обновляем скрытые ингредиенты
             DOUGH_DATA.weight30 = 350;
             DOUGH_DATA.protein100 = 6.2;
             DOUGH_DATA.fat100 = 4;
