@@ -564,14 +564,14 @@
     // 3. ДАННЫЕ ПО СОУСАМ И БОРТАМ
     // ============================================================
     const SAUCE_DATA = {
-        tomato: { name: 'Томатный соус', weight30: 35, protein100: 1.5, fat100: 0.2, carbs100: 8 },
-        cream: { name: 'Сливочный соус', weight30: 30, protein100: 2, fat100: 15, carbs100: 4 }
+        tomato: { name: 'Томатный соус', weight30: 100, protein100: 0.2, fat100: 2.2, carbs100: 17.1 },
+        cream: { name: 'Сливочный соус', weight30: 90, protein100: 0.4, fat100: 42, carbs100: 3.9 }
     };
     
     const EDGE_DATA = {
-        cheese: { name: 'Сырный борт', weight30: 60, protein100: 18, fat100: 25, carbs100: 3 },
-        cottage: { name: 'Творожный борт', weight30: 55, protein100: 14, fat100: 18, carbs100: 4 },
-        potato: { name: 'Картофельный борт', weight30: 50, protein100: 5, fat100: 12, carbs100: 22 }
+        cheese: { name: 'Сырный борт', weight30: 160, protein100: 20, fat100: 16, carbs100: 7 },
+        cottage: { name: 'Творожный борт', weight30: 120, protein100: 6.6, fat100: 28.1, carbs100: 3 },
+        potato: { name: 'Картофельный борт', weight30: 70, protein100: 4.5, fat100: 8.6, carbs100: 26.6 }
     };
     
     // ============================================================
@@ -592,7 +592,7 @@
             console.error(e);
             setStatus('⚠️ демо');
             ingredients = [
-                { id: "ing1", name: "Тесто", weight30: 250, protein100: 8, fat100: 6, carbs100: 52 },
+                { id: "ing1", name: "Тесто", weight30: 350, protein100: 6.2, fat100: 4, carbs100: 45.8 },
                 { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
                 { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
                 { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
@@ -991,7 +991,7 @@
     document.getElementById('reset-ing-btn').addEventListener('click', () => {
         if (confirm('Сбросить все ингредиенты к демо-набору?')) {
             ingredients = [
-                { id: "ing1", name: "Тесто", weight30: 250, protein100: 8, fat100: 6, carbs100: 52 },
+                { id: "ing1", name: "Тесто", weight30: 350, protein100: 6.2, fat100: 4, carbs100: 45.8 },
                 { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
                 { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
                 { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
