@@ -139,7 +139,7 @@
             color: #c45c1a;
         }
         
-        /* ===== БОРТ (В ДВЕ СТРОКИ) ===== */
+        /* ===== БОРТ ===== */
         .edge-selector {
             display: flex;
             flex-wrap: wrap;
@@ -561,7 +561,7 @@
     const DOUGH_ID = 'ing1';
     
     // ============================================================
-    // 3. ДАННЫЕ ПО СОУСАМ И БОРТАМ
+    // 3. ДАННЫЕ ПО СОУСАМ И БОРТАМ (ОБНОВЛЕНЫ)
     // ============================================================
     const SAUCE_DATA = {
         tomato: { name: 'Томатный соус', weight30: 100, protein100: 0.2, fat100: 2.2, carbs100: 17.1 },
@@ -657,21 +657,33 @@
     }
     
     // ============================================================
-    // 6. РАСЧЁТЫ
+    // 6. РАСЧЁТЫ — ГЛАВНАЯ ЛОГИКА
     // ============================================================
-    function getSizeMultiplier() {
+    function getSizeMultiplier(ing) {
+        // 25 см → 75% от 30 см
         if (currentSize === '25') return 0.75;
-        if (currentSize === 'closed') return 1.5; // 25 см × 2 теста = 75% × 2 = 150%
-        return 1.0; // 30 см
+        
+        // Закрытая пицца:
+        // - тесто: 150% (2× теста для 25 см, так как 0.75 × 2 = 1.5)
+        // - все остальные ингредиенты: 100% (как для 30 см)
+        if (currentSize === 'closed') {
+            if (ing && ing.id === DOUGH_ID) {
+                return 1.5;
+            }
+            return 1.0;
+        }
+        
+        // 30 см → 100%
+        return 1.0;
     }
     
-    function getActualWeight(weight30) {
-        const multiplier = getSizeMultiplier();
-        return Math.round(weight30 * multiplier);
+    function getActualWeight(ing) {
+        const multiplier = getSizeMultiplier(ing);
+        return Math.round(ing.weight30 * multiplier);
     }
     
     function calcPortion(ing) {
-        const weight = getActualWeight(ing.weight30);
+        const weight = getActualWeight(ing);
         const factor = weight / 100;
         return {
             weight: weight,
@@ -685,7 +697,8 @@
     function calcSaucePortion() {
         const sauce = SAUCE_DATA[selectedSauce];
         if (!sauce) return null;
-        const weight = getActualWeight(sauce.weight30);
+        const multiplier = getSizeMultiplier({ id: 'sauce' });
+        const weight = Math.round(sauce.weight30 * multiplier);
         const factor = weight / 100;
         return {
             weight: weight,
@@ -700,7 +713,8 @@
         if (selectedEdge === 'none') return null;
         const edge = EDGE_DATA[selectedEdge];
         if (!edge) return null;
-        const weight = getActualWeight(edge.weight30);
+        const multiplier = getSizeMultiplier({ id: 'edge' });
+        const weight = Math.round(edge.weight30 * multiplier);
         const factor = weight / 100;
         return {
             weight: weight,
