@@ -95,20 +95,10 @@
             color: #555;
             text-align: center;
         }
-        .size-btn .sub {
-            display: block;
-            font-size: 0.55rem;
-            font-weight: 400;
-            color: #999;
-            margin-top: 1px;
-        }
         .size-btn.active {
             border-color: #e67e22;
             background: #fef5e7;
             color: #c45c1a;
-        }
-        .size-btn.active .sub {
-            color: #a7581e;
         }
         
         /* ===== СОУС ===== */
@@ -149,16 +139,16 @@
             color: #c45c1a;
         }
         
-        /* ===== БОРТ ===== */
+        /* ===== БОРТ (В ДВЕ СТРОКИ) ===== */
         .edge-selector {
             display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
             margin-bottom: 12px;
             background: white;
             padding: 8px 12px;
             border-radius: 14px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            flex-wrap: wrap;
         }
         .edge-selector .label {
             font-size: 0.7rem;
@@ -167,10 +157,13 @@
             display: flex;
             align-items: center;
             margin-right: 4px;
+            width: 100%;
+            margin-bottom: 4px;
         }
         .edge-btn {
             flex: 1;
-            padding: 6px 14px;
+            min-width: calc(50% - 6px);
+            padding: 6px 10px;
             border: 2px solid #e0d5c8;
             border-radius: 10px;
             background: white;
@@ -179,7 +172,7 @@
             cursor: pointer;
             transition: 0.2s;
             color: #555;
-            min-width: 60px;
+            text-align: center;
         }
         .edge-btn.active {
             border-color: #e67e22;
@@ -440,9 +433,9 @@
             .ing-card { padding: 6px 10px; }
             .ing-card .name { font-size: 0.75rem; }
             .admin-table input { min-width: 28px; font-size: 0.65rem; }
-            .size-btn { font-size: 0.7rem; }
+            .size-btn { font-size: 0.7rem; padding: 6px 2px; }
             .sauce-btn { font-size: 0.65rem; padding: 5px 10px; }
-            .edge-btn { font-size: 0.65rem; padding: 5px 10px; }
+            .edge-btn { font-size: 0.65rem; padding: 5px 8px; min-width: calc(50% - 4px); }
         }
     </style>
 </head>
@@ -470,7 +463,7 @@
     <div class="size-selector">
         <button class="size-btn" data-size="25">25 см</button>
         <button class="size-btn active" data-size="30">30 см</button>
-        <button class="size-btn" data-size="closed">Закрытая <span class="sub">2× тесто</span></button>
+        <button class="size-btn" data-size="closed">Закрытая</button>
     </div>
     
     <!-- ===== ВЫБОР СОУСА ===== -->
@@ -678,13 +671,7 @@
     }
     
     function calcPortion(ing) {
-        const isDough = ing.id === DOUGH_ID;
-        let weight = getActualWeight(ing.weight30);
-        
-        // Для закрытой пиццы тесто удваивается (уже учтено в getSizeMultiplier)
-        // Но нам нужно убедиться, что для закрытой пиццы тесто берётся как 2× от 25 см
-        // multiplier = 0.7 * 2 = 1.4, это и есть 2× тесто для 25 см
-        
+        const weight = getActualWeight(ing.weight30);
         const factor = weight / 100;
         return {
             weight: weight,
