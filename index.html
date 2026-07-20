@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>🍕 Пицца-калькулятор</title>
+    <title>🍕 КБЖУ пиццы</title>
     <style>
         * {
             margin: 0;
@@ -41,7 +41,6 @@
             color: #2c3e50;
         }
         
-        /* ===== ОСНОВНОЕ ТАБЛО (ВСЯ ПИЦЦА) ===== */
         .total-panel {
             background: #2e3b2c;
             color: white;
@@ -71,7 +70,6 @@
             margin-top: 1px;
         }
         
-        /* ===== ТАБЛО НА 100 Г ===== */
         .total-panel-100 {
             background: #1e2b1c;
             color: white;
@@ -79,13 +77,6 @@
             padding: 10px 14px;
             margin-bottom: 12px;
             border: 1px solid #3a4a38;
-        }
-        .total-panel-100 .label-100 {
-            font-size: 0.6rem;
-            opacity: 0.6;
-            text-align: center;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
         }
         .total-grid-100 {
             display: grid;
@@ -146,15 +137,6 @@
             padding: 8px 12px;
             border-radius: 14px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            flex-wrap: wrap;
-        }
-        .sauce-selector .label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #7f8c8d;
-            display: flex;
-            align-items: center;
-            margin-right: 4px;
         }
         .sauce-btn {
             flex: 1;
@@ -167,7 +149,7 @@
             cursor: pointer;
             transition: 0.2s;
             color: #555;
-            min-width: 60px;
+            text-align: center;
         }
         .sauce-btn.active {
             border-color: #e67e22;
@@ -184,16 +166,6 @@
             padding: 8px 12px;
             border-radius: 14px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .edge-selector .label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #7f8c8d;
-            display: flex;
-            align-items: center;
-            margin-right: 4px;
-            width: 100%;
-            margin-bottom: 4px;
         }
         .edge-btn {
             flex: 1;
@@ -478,7 +450,7 @@
 <div class="container">
     
     <div class="header">
-        <h1>🍕 Пицца-калькулятор</h1>
+        <h1>🍕 КБЖУ пиццы</h1>
         <span class="status" id="status">🔄 загрузка...</span>
     </div>
     
@@ -495,7 +467,6 @@
     
     <!-- ===== ТАБЛО НА 100 Г ===== -->
     <div class="total-panel-100">
-        <div class="label-100">📊 НА 100 Г ПРОДУКТА</div>
         <div class="total-grid-100">
             <div class="total-item-100"><div class="label">🥩 Белки</div><div class="value" id="total-protein-100">0 г</div></div>
             <div class="total-item-100"><div class="label">🧈 Жиры</div><div class="value" id="total-fat-100">0 г</div></div>
@@ -512,13 +483,11 @@
     </div>
     
     <div class="sauce-selector" id="sauce-selector">
-        <span class="label">🥫 Соус:</span>
         <button class="sauce-btn active" data-sauce="tomato">Томатный</button>
         <button class="sauce-btn" data-sauce="cream">Сливочный</button>
     </div>
     
     <div class="edge-selector" id="edge-selector">
-        <span class="label">🧀 Борт:</span>
         <button class="edge-btn active none" data-edge="none">Без борта</button>
         <button class="edge-btn" data-edge="cheese">Сырный</button>
         <button class="edge-btn" data-edge="cottage">Творожный</button>
