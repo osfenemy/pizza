@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🍕 Пицца-калькулятор</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: #f5ede4;
+            padding: 12px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* ===== ШАПКА ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            color: #c45c1a;
+        }
+        .header .status {
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #e8f0fe;
+            color: #2c3e50;
+        }
+        
+        /* ===== ТАБЛО ИТОГОВ ===== */
+        .total-panel {
+            background: #2e3b2c;
+            color: white;
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .total-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+        .total-item {
+            background: #0000002e;
+            border-radius: 10px;
+            padding: 6px 2px;
+            text-align: center;
+        }
+        .total-item .label {
+            font-size: 0.5rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+        .total-item .value {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 1px;
+        }
+        
+        /* ===== РАЗМЕР ===== */
+        .size-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .size-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border: 2px solid #e0d5c8;
+            border-radius: 10px;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+            text-align: center;
+        }
+        .size-btn .sub {
+            display: block;
+            font-size: 0.55rem;
+            font-weight: 400;
+            color: #999;
+            margin-top: 1px;
+        }
+        .size-btn.active {
+            border-color: #e67e22;
+            background: #fef5e7;
+            color: #c45c1a;
+        }
+        .size-btn.active .sub {
+            color: #a7581e;
+        }
+        
+        /* ===== СОУС ===== */
+        .sauce-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+        }
+        .sauce-selector .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            margin-right: 4px;
+        }
+        .sauce-btn {
+            flex: 1;
+            padding: 6px 14px;
+            border: 2px solid #e0d5c8;
+            border-radius: 10px;
+            background: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+            min-width: 60px;
+        }
+        .sauce-btn.active {
+            border-color: #e67e22;
+            background: #fef5e7;
+            color: #c45c1a;
+        }
+        
+        /* ===== БОРТ ===== */
+        .edge-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+        }
+        .edge-selector .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            margin-right: 4px;
+        }
+        .edge-btn {
+            flex: 1;
+            padding: 6px 14px;
+            border: 2px solid #e0d5c8;
+            border-radius: 10px;
+            background: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+            min-width: 60px;
+        }
+        .edge-btn.active {
+            border-color: #e67e22;
+            background: #fef5e7;
+            color: #c45c1a;
+        }
+        .edge-btn.none.active {
+            border-color: #95a5a6;
+            background: #ecf0f1;
+            color: #555;
+        }
+        
+        /* ===== ИНГРЕДИЕНТЫ ===== */
+        .ingredients-section {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title .count {
+            font-size: 0.65rem;
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+        .ingredients-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        .ing-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #faf6f0;
+            border-radius: 12px;
+            border: 1px solid #f0e8de;
+            transition: 0.15s;
+            cursor: pointer;
+        }
+        .ing-card.selected {
+            background: #f1d5a9;
+            border-color: #e67e22;
+        }
+        .ing-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .ing-card .name {
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .ing-card .detail {
+            font-size: 0.6rem;
+            color: #7f8c8d;
+            margin-top: 1px;
+        }
+        .ing-card .detail span {
+            margin-right: 4px;
+        }
+        .ing-card .btn-add {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #e67e22;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .ing-card .btn-add.remove {
+            background: #c0392b;
+        }
+        
+        /* ===== АДМИНКА ===== */
+        .admin-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+        .admin-section.collapsed .admin-body {
+            display: none;
+        }
+        .admin-section .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .admin-section .admin-header .icon {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-section .admin-header .icon span {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        .admin-section .admin-header .toggle-icon {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            transition: transform 0.3s;
+        }
+        .admin-section.expanded .admin-header .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .admin-body {
+            padding: 0 14px 14px 14px;
+        }
+        
+        .admin-locked {
+            text-align: center;
+            padding: 12px;
+            background: #f8f4ef;
+            border-radius: 12px;
+        }
+        .admin-locked input {
+            padding: 8px 14px;
+            border: 2px solid #e67e22;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            width: 160px;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .admin-locked button {
+            margin-top: 8px;
+            padding: 8px 24px;
+            border-radius: 12px;
+            border: none;
+            background: #e67e22;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .admin-locked .error {
+            color: #c0392b;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+        
+        .admin-unlocked {
+            display: none;
+        }
+        .admin-unlocked.show {
+            display: block;
+        }
+        
+        .admin-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 10px;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 4px 4px;
+            color: #7f8c8d;
+            font-weight: 600;
+            border-bottom: 2px solid #f0e8de;
+        }
+        .admin-table td {
+            padding: 4px 4px;
+            border-bottom: 1px solid #f0e8de;
+        }
+        .admin-table input {
+            width: 100%;
+            min-width: 35px;
+            padding: 3px 5px;
+            border: 1px solid #e0d5c8;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            background: #faf6f0;
+        }
+        .admin-table .del-btn {
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: none;
+            background: #c0392b;
+            color: white;
+            font-size: 0.6rem;
+            cursor: pointer;
+        }
+        
+        .admin-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .admin-actions input {
+            flex: 1;
+            min-width: 50px;
+            padding: 5px 8px;
+            border: 1px solid #e0d5c8;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            background: #faf6f0;
+        }
+        .admin-actions button {
+            padding: 5px 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.65rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .admin-actions .add-btn { background: #27ae60; color: white; }
+        .admin-actions .save-btn { background: #e67e22; color: white; }
+        .admin-actions .reset-btn { background: #7f8c8d; color: white; }
+        
+        .loading-text {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+        
+        .ing-card {
+            animation: fadeUp 0.2s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 420px) {
+            body { padding: 8px; }
+            .total-grid { gap: 3px; }
+            .total-item .value { font-size: 0.8rem; }
+            .ing-card { padding: 6px 10px; }
+            .ing-card .name { font-size: 0.75rem; }
+            .admin-table input { min-width: 28px; font-size: 0.65rem; }
+            .size-btn { font-size: 0.7rem; }
+            .sauce-btn { font-size: 0.65rem; padding: 5px 10px; }
+            .edge-btn { font-size: 0.65rem; padding: 5px 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    
+    <!-- ===== ШАПКА ===== -->
+    <div class="header">
+        <h1>🍕 Пицца-калькулятор</h1>
+        <span class="status" id="status">🔄 загрузка...</span>
+    </div>
+    
+    <!-- ===== ТАБЛО ===== -->
+    <div class="total-panel">
+        <div class="total-grid">
+            <div class="total-item"><div class="label">🥩 Белки</div><div class="value" id="total-protein">0 г</div></div>
+            <div class="total-item"><div class="label">🧈 Жиры</div><div class="value" id="total-fat">0 г</div></div>
+            <div class="total-item"><div class="label">🍚 Углеводы</div><div class="value" id="total-carbs">0 г</div></div>
+            <div class="total-item"><div class="label">🔥 Ккал</div><div class="value" id="total-calories">0</div></div>
+            <div class="total-item"><div class="label">⚖️ Вес</div><div class="value" id="total-weight">0 г</div></div>
+        </div>
+    </div>
+    
+    <!-- ===== ВЫБОР РАЗМЕРА ===== -->
+    <div class="size-selector">
+        <button class="size-btn" data-size="25">25 см</button>
+        <button class="size-btn active" data-size="30">30 см</button>
+        <button class="size-btn" data-size="closed">Закрытая <span class="sub">2× тесто</span></button>
+    </div>
+    
+    <!-- ===== ВЫБОР СОУСА ===== -->
+    <div class="sauce-selector" id="sauce-selector">
+        <span class="label">🥫 Соус:</span>
+        <button class="sauce-btn active" data-sauce="tomato">Томатный</button>
+        <button class="sauce-btn" data-sauce="cream">Сливочный</button>
+    </div>
+    
+    <!-- ===== ВЫБОР БОРТА ===== -->
+    <div class="edge-selector" id="edge-selector">
+        <span class="label">🧀 Борт:</span>
+        <button class="edge-btn active none" data-edge="none">Без борта</button>
+        <button class="edge-btn" data-edge="cheese">Сырный</button>
+        <button class="edge-btn" data-edge="cottage">Творожный</button>
+        <button class="edge-btn" data-edge="potato">Картофельный</button>
+    </div>
+    
+    <!-- ===== ИНГРЕДИЕНТЫ ===== -->
+    <div class="ingredients-section">
+        <div class="section-title">
+            <span>📋 Ингредиенты</span>
+            <span class="count" id="selected-count">выбрано: 0</span>
+        </div>
+        <div class="ingredients-grid" id="ingredients-list">
+            <div class="loading-text">Загрузка ингредиентов...</div>
+        </div>
+    </div>
+    
+    <!-- ===== АДМИНКА ===== -->
+    <div class="admin-section collapsed" id="admin-section">
+        <div class="admin-header" id="admin-header">
+            <div class="icon">
+                ⚙️ <span>Редактор</span>
+            </div>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="admin-body">
+            <div id="admin-locked" class="admin-locked">
+                <p style="font-size:0.75rem; color:#555;">Введите пароль для редактирования</p>
+                <input type="password" id="admin-password" placeholder="Пароль">
+                <button id="admin-unlock-btn">Войти</button>
+                <div class="error" id="admin-error"></div>
+            </div>
+            
+            <div id="admin-unlocked" class="admin-unlocked">
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Ингредиент</th>
+                                <th>Вес 30см</th>
+                                <th>Б/100</th>
+                                <th>Ж/100</th>
+                                <th>У/100</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="admin-actions">
+                    <input type="text" id="new-name" placeholder="Название">
+                    <input type="number" id="new-weight" placeholder="Вес" value="30">
+                    <input type="number" id="new-protein" placeholder="Б" value="10" step="0.1">
+                    <input type="number" id="new-fat" placeholder="Ж" value="10" step="0.1">
+                    <input type="number" id="new-carbs" placeholder="У" value="2" step="0.1">
+                    <button class="add-btn" id="add-ing-btn">➕</button>
+                    <button class="save-btn" id="save-ing-btn">💾</button>
+                    <button class="reset-btn" id="reset-ing-btn">↺</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+    // ============================================================
+    // 1. НАСТРОЙКИ
+    // ============================================================
+    const ADMIN_PASSWORD = "pizza123";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmAh1hz83UdfefQNJaecgC1k4YDaX1w1B20Tvg4eeFn9Zy76lYqZqUv9kleKAt_onyZQ/exec";
+    
+    // ============================================================
+    // 2. СОСТОЯНИЕ
+    // ============================================================
+    let ingredients = [];
+    let selectedIds = [];
+    let currentSize = '30'; // '25', '30', 'closed'
+    let selectedSauce = 'tomato'; // 'tomato', 'cream'
+    let selectedEdge = 'none';     // 'none', 'cheese', 'cottage', 'potato'
+    let isAdminUnlocked = false;
+    
+    const DOUGH_ID = 'ing1';
+    
+    // ============================================================
+    // 3. ДАННЫЕ ПО СОУСАМ И БОРТАМ
+    // ============================================================
+    const SAUCE_DATA = {
+        tomato: { name: 'Томатный соус', weight30: 35, protein100: 1.5, fat100: 0.2, carbs100: 8 },
+        cream: { name: 'Сливочный соус', weight30: 30, protein100: 2, fat100: 15, carbs100: 4 }
+    };
+    
+    const EDGE_DATA = {
+        cheese: { name: 'Сырный борт', weight30: 60, protein100: 18, fat100: 25, carbs100: 3 },
+        cottage: { name: 'Творожный борт', weight30: 55, protein100: 14, fat100: 18, carbs100: 4 },
+        potato: { name: 'Картофельный борт', weight30: 50, protein100: 5, fat100: 12, carbs100: 22 }
+    };
+    
+    // ============================================================
+    // 4. РАБОТА С GOOGLE SHEETS
+    // ============================================================
+    async function loadFromSheet() {
+        setStatus('📥 загрузка...');
+        try {
+            const resp = await fetch(SCRIPT_URL);
+            const data = await resp.json();
+            if (Array.isArray(data) && data.length > 0) {
+                ingredients = data;
+                setStatus('✅ загружено');
+            } else {
+                throw new Error('Нет данных');
+            }
+        } catch(e) {
+            console.error(e);
+            setStatus('⚠️ демо');
+            ingredients = [
+                { id: "ing1", name: "Тесто", weight30: 250, protein100: 8, fat100: 6, carbs100: 52 },
+                { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
+                { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
+                { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
+                { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
+            ];
+        }
+        loadSelectedFromLocal();
+        renderAll();
+    }
+    
+    async function saveToSheet(data) {
+        setStatus('💾 сохранение...');
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            setStatus('✅ сохранено');
+        } catch(e) {
+            console.error(e);
+            setStatus('❌ ошибка');
+        }
+    }
+    
+    // ============================================================
+    // 5. LOCALSTORAGE
+    // ============================================================
+    function loadSelectedFromLocal() {
+        const saved = localStorage.getItem('pizza_selected_ids');
+        if (saved) {
+            selectedIds = JSON.parse(saved).filter(id => ingredients.some(i => i.id === id));
+        } else {
+            selectedIds = [];
+        }
+        const savedSize = localStorage.getItem('pizza_size');
+        if (savedSize && ['25', '30', 'closed'].includes(savedSize)) {
+            currentSize = savedSize;
+        } else {
+            currentSize = '30';
+        }
+        const savedSauce = localStorage.getItem('pizza_sauce');
+        if (savedSauce && ['tomato', 'cream'].includes(savedSauce)) {
+            selectedSauce = savedSauce;
+        } else {
+            selectedSauce = 'tomato';
+        }
+        const savedEdge = localStorage.getItem('pizza_edge');
+        if (savedEdge && ['none', 'cheese', 'cottage', 'potato'].includes(savedEdge)) {
+            selectedEdge = savedEdge;
+        } else {
+            selectedEdge = 'none';
+        }
+    }
+    
+    function saveSelectedToLocal() {
+        localStorage.setItem('pizza_selected_ids', JSON.stringify(selectedIds));
+        localStorage.setItem('pizza_size', currentSize);
+        localStorage.setItem('pizza_sauce', selectedSauce);
+        localStorage.setItem('pizza_edge', selectedEdge);
+    }
+    
+    // ============================================================
+    // 6. РАСЧЁТЫ
+    // ============================================================
+    function getSizeMultiplier() {
+        if (currentSize === '25') return 0.7;
+        if (currentSize === 'closed') return 1.4; // 25 см × 2 теста = 70% × 2 = 140%
+        return 1.0; // 30 см
+    }
+    
+    function getActualWeight(weight30) {
+        const multiplier = getSizeMultiplier();
+        return Math.round(weight30 * multiplier);
+    }
+    
+    function calcPortion(ing) {
+        const isDough = ing.id === DOUGH_ID;
+        let weight = getActualWeight(ing.weight30);
+        
+        // Для закрытой пиццы тесто удваивается (уже учтено в getSizeMultiplier)
+        // Но нам нужно убедиться, что для закрытой пиццы тесто берётся как 2× от 25 см
+        // multiplier = 0.7 * 2 = 1.4, это и есть 2× тесто для 25 см
+        
+        const factor = weight / 100;
+        return {
+            weight: weight,
+            protein: ing.protein100 * factor,
+            fat: ing.fat100 * factor,
+            carbs: ing.carbs100 * factor,
+            calories: Math.round((ing.protein100 * factor * 4) + (ing.fat100 * factor * 9) + (ing.carbs100 * factor * 4))
+        };
+    }
+    
+    function calcSaucePortion() {
+        const sauce = SAUCE_DATA[selectedSauce];
+        if (!sauce) return null;
+        const weight = getActualWeight(sauce.weight30);
+        const factor = weight / 100;
+        return {
+            weight: weight,
+            protein: sauce.protein100 * factor,
+            fat: sauce.fat100 * factor,
+            carbs: sauce.carbs100 * factor,
+            calories: Math.round((sauce.protein100 * factor * 4) + (sauce.fat100 * factor * 9) + (sauce.carbs100 * factor * 4))
+        };
+    }
+    
+    function calcEdgePortion() {
+        if (selectedEdge === 'none') return null;
+        const edge = EDGE_DATA[selectedEdge];
+        if (!edge) return null;
+        const weight = getActualWeight(edge.weight30);
+        const factor = weight / 100;
+        return {
+            weight: weight,
+            protein: edge.protein100 * factor,
+            fat: edge.fat100 * factor,
+            carbs: edge.carbs100 * factor,
+            calories: Math.round((edge.protein100 * factor * 4) + (edge.fat100 * factor * 9) + (edge.carbs100 * factor * 4))
+        };
+    }
+    
+    function calcTotals() {
+        let totalWeight = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalCal = 0;
+        
+        selectedIds.forEach(id => {
+            const ing = ingredients.find(i => i.id === id);
+            if (ing) {
+                const p = calcPortion(ing);
+                totalWeight += p.weight;
+                totalProtein += p.protein;
+                totalFat += p.fat;
+                totalCarbs += p.carbs;
+                totalCal += p.calories;
+            }
+        });
+        
+        // Соус (всегда есть)
+        const sauce = calcSaucePortion();
+        if (sauce) {
+            totalWeight += sauce.weight;
+            totalProtein += sauce.protein;
+            totalFat += sauce.fat;
+            totalCarbs += sauce.carbs;
+            totalCal += sauce.calories;
+        }
+        
+        // Борт (если выбран)
+        const edge = calcEdgePortion();
+        if (edge) {
+            totalWeight += edge.weight;
+            totalProtein += edge.protein;
+            totalFat += edge.fat;
+            totalCarbs += edge.carbs;
+            totalCal += edge.calories;
+        }
+        
+        return { totalWeight, totalProtein, totalFat, totalCarbs, totalCal };
+    }
+    
+    // ============================================================
+    // 7. ОТРИСОВКА
+    // ============================================================
+    function setStatus(text) {
+        document.getElementById('status').textContent = text;
+    }
+    
+    function renderTotals() {
+        const t = calcTotals();
+        document.getElementById('total-protein').textContent = t.totalProtein.toFixed(1) + ' г';
+        document.getElementById('total-fat').textContent = t.totalFat.toFixed(1) + ' г';
+        document.getElementById('total-carbs').textContent = t.totalCarbs.toFixed(1) + ' г';
+        document.getElementById('total-calories').textContent = Math.round(t.totalCal);
+        document.getElementById('total-weight').textContent = t.totalWeight + ' г';
+        document.getElementById('selected-count').textContent = 'выбрано: ' + selectedIds.length;
+    }
+    
+    function renderIngredients() {
+        const container = document.getElementById('ingredients-list');
+        container.innerHTML = '';
+        
+        if (!ingredients || ingredients.length === 0) {
+            container.innerHTML = '<div class="loading-text">Нет ингредиентов</div>';
+            return;
+        }
+        
+        ingredients.forEach(ing => {
+            const isSelected = selectedIds.includes(ing.id);
+            const p = calcPortion(ing);
+            const div = document.createElement('div');
+            div.className = `ing-card ${isSelected ? 'selected' : ''}`;
+            
+            let weightDisplay = p.weight + 'г';
+            if (currentSize === 'closed' && ing.id === DOUGH_ID) {
+                weightDisplay = p.weight + 'г (2× теста)';
+            }
+            
+            div.innerHTML = `
+                <div class="info">
+                    <div class="name">${ing.name}</div>
+                    <div class="detail">
+                        <span>⚖️ ${weightDisplay}</span>
+                        <span>🥩${p.protein.toFixed(1)}</span>
+                        <span>🧈${p.fat.toFixed(1)}</span>
+                        <span>🍚${p.carbs.toFixed(1)}</span>
+                        <span>🔥${p.calories}</span>
+                    </div>
+                </div>
+                <button class="btn-add ${isSelected ? 'remove' : ''}" data-id="${ing.id}">
+                    ${isSelected ? '−' : '+'}
+                </button>
+            `;
+            container.appendChild(div);
+        });
+        
+        container.querySelectorAll('.btn-add').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                if (selectedIds.includes(id)) {
+                    selectedIds = selectedIds.filter(i => i !== id);
+                } else {
+                    selectedIds.push(id);
+                }
+                saveSelectedToLocal();
+                renderAll();
+            });
+        });
+        
+        renderTotals();
+    }
+    
+    function renderSelectors() {
+        // Размер
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            const size = btn.dataset.size;
+            btn.classList.toggle('active', size === currentSize);
+        });
+        // Соус
+        document.querySelectorAll('.sauce-btn').forEach(btn => {
+            const sauce = btn.dataset.sauce;
+            btn.classList.toggle('active', sauce === selectedSauce);
+        });
+        // Борт
+        document.querySelectorAll('.edge-btn').forEach(btn => {
+            const edge = btn.dataset.edge;
+            btn.classList.toggle('active', edge === selectedEdge);
+        });
+    }
+    
+    function renderAdmin() {
+        const tbody = document.getElementById('admin-tbody');
+        tbody.innerHTML = '';
+        
+        if (!isAdminUnlocked) return;
+        
+        ingredients.forEach(ing => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${ing.name}</td>
+                <td><input type="number" class="admin-weight" data-id="${ing.id}" value="${ing.weight30}"></td>
+                <td><input type="number" step="0.1" class="admin-protein" data-id="${ing.id}" value="${ing.protein100}"></td>
+                <td><input type="number" step="0.1" class="admin-fat" data-id="${ing.id}" value="${ing.fat100}"></td>
+                <td><input type="number" step="0.1" class="admin-carbs" data-id="${ing.id}" value="${ing.carbs100}"></td>
+                <td><button class="del-btn" data-id="${ing.id}">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        tbody.querySelectorAll('.del-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                if (id === DOUGH_ID) {
+                    alert('❌ Нельзя удалить тесто!');
+                    return;
+                }
+                if (confirm('Удалить ингредиент?')) {
+                    ingredients = ingredients.filter(i => i.id !== id);
+                    selectedIds = selectedIds.filter(i => i !== id);
+                    saveSelectedToLocal();
+                    renderAll();
+                }
+            });
+        });
+        
+        tbody.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', collectAdminChanges);
+            input.addEventListener('input', debounce(collectAdminChanges, 500));
+        });
+    }
+    
+    function collectAdminChanges() {
+        const rows = document.querySelectorAll('#admin-tbody tr');
+        rows.forEach(row => {
+            const id = row.querySelector('.admin-weight')?.dataset.id;
+            if (!id) return;
+            const ing = ingredients.find(i => i.id === id);
+            if (!ing) return;
+            const weight = parseFloat(row.querySelector('.admin-weight')?.value);
+            const protein = parseFloat(row.querySelector('.admin-protein')?.value);
+            const fat = parseFloat(row.querySelector('.admin-fat')?.value);
+            const carbs = parseFloat(row.querySelector('.admin-carbs')?.value);
+            if (!isNaN(weight)) ing.weight30 = weight;
+            if (!isNaN(protein)) ing.protein100 = protein;
+            if (!isNaN(fat)) ing.fat100 = fat;
+            if (!isNaN(carbs)) ing.carbs100 = carbs;
+        });
+        renderIngredients();
+    }
+    
+    function debounce(fn, delay) {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+    
+    function renderAll() {
+        renderIngredients();
+        renderSelectors();
+        renderAdmin();
+    }
+    
+    // ============================================================
+    // 8. АДМИНКА
+    // ============================================================
+    function toggleAdminExpand() {
+        const section = document.getElementById('admin-section');
+        section.classList.toggle('collapsed');
+        section.classList.toggle('expanded');
+    }
+    
+    function unlockAdmin() {
+        const password = document.getElementById('admin-password').value;
+        if (password === ADMIN_PASSWORD) {
+            isAdminUnlocked = true;
+            document.getElementById('admin-locked').style.display = 'none';
+            document.getElementById('admin-unlocked').classList.add('show');
+            document.getElementById('admin-error').textContent = '';
+            renderAdmin();
+        } else {
+            document.getElementById('admin-error').textContent = '❌ Неверный пароль!';
+        }
+    }
+    
+    // ============================================================
+    // 9. СОБЫТИЯ
+    // ============================================================
+    document.getElementById('admin-header').addEventListener('click', toggleAdminExpand);
+    
+    document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentSize = btn.dataset.size;
+            saveSelectedToLocal();
+            renderAll();
+        });
+    });
+    
+    document.querySelectorAll('.sauce-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedSauce = btn.dataset.sauce;
+            saveSelectedToLocal();
+            renderAll();
+        });
+    });
+    
+    document.querySelectorAll('.edge-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedEdge = btn.dataset.edge;
+            saveSelectedToLocal();
+            renderAll();
+        });
+    });
+    
+    document.getElementById('admin-unlock-btn').addEventListener('click', unlockAdmin);
+    document.getElementById('admin-password').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') unlockAdmin();
+    });
+    
+    document.getElementById('add-ing-btn').addEventListener('click', () => {
+        const name = document.getElementById('new-name').value.trim();
+        if (!name) { alert('Введите название'); return; }
+        const weight = parseFloat(document.getElementById('new-weight').value) || 30;
+        const protein = parseFloat(document.getElementById('new-protein').value) || 0;
+        const fat = parseFloat(document.getElementById('new-fat').value) || 0;
+        const carbs = parseFloat(document.getElementById('new-carbs').value) || 0;
+        const newId = 'ing_' + Date.now();
+        ingredients.push({ id: newId, name, weight30: weight, protein100: protein, fat100: fat, carbs100: carbs });
+        renderAll();
+        document.getElementById('new-name').value = '';
+    });
+    
+    document.getElementById('save-ing-btn').addEventListener('click', () => {
+        collectAdminChanges();
+        saveToSheet(ingredients);
+        alert('✅ Данные сохранены в Google Sheets!');
+    });
+    
+    document.getElementById('reset-ing-btn').addEventListener('click', () => {
+        if (confirm('Сбросить все ингредиенты к демо-набору?')) {
+            ingredients = [
+                { id: "ing1", name: "Тесто", weight30: 250, protein100: 8, fat100: 6, carbs100: 52 },
+                { id: "ing2", name: "Сыр моцарелла", weight30: 45, protein100: 22, fat100: 22, carbs100: 2.2 },
+                { id: "ing3", name: "Пепперони", weight30: 25, protein100: 19, fat100: 40, carbs100: 1.5 },
+                { id: "ing4", name: "Шампиньоны", weight30: 20, protein100: 3.1, fat100: 0.3, carbs100: 3.3 },
+                { id: "ing5", name: "Курица", weight30: 40, protein100: 23, fat100: 1.5, carbs100: 0.5 }
+            ];
+            selectedIds = [];
+            selectedSauce = 'tomato';
+            selectedEdge = 'none';
+            currentSize = '30';
+            saveSelectedToLocal();
+            renderAll();
+        }
+    });
+    
+    // ============================================================
+    // 10. ЗАПУСК
+    // ============================================================
+    loadFromSheet();
+</script>
+</body>
+</html>
